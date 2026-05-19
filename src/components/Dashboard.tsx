@@ -1,7 +1,7 @@
 import {
   useEffect,
   useState,
-  useCallback,
+  
 } from "react";
 import {
   Plus,
@@ -13,28 +13,10 @@ import PostCard from "./PostCard";
 import PostComposer from "./PostComposer";
 import StatsBar from "./StatsBar";
 import FilterBar from "./FilterBar";
-type PostStatus =
-  | "scheduled"
-  | "published";
-interface ScheduledPost {
-  id: string;
-  content: string;
-  image?: string;
-  url?: string;
-  description?: string;
-  scheduled_at: string;
-  created_at: string;
-  updated_at: string;
-  status: PostStatus;
-}
+import { PostStatus, ScheduledPost } from "../lib/supabase";
 
-interface NewPost {
-  content: string;
-  image?: string;
-  url?: string;
-  description?: string;
-  scheduled_at: string;
-}
+
+
 
 interface ApiPost {
   _id: string;
@@ -80,88 +62,53 @@ export default function Dashboard() {
     "scheduled_at" | "created_at"
   >("scheduled_at");
 
-  const fetchPosts = useCallback(async () => {
-    try {
-      setLoading(true);
+const fetchPosts = async () => {
+  try {
+    setLoading(true);
 
-      const result =
-        await api.get<ApiResponse>(
-          "/smp"
-        );
+    const result =
+      await api.get<ApiResponse>(
+        "/smp"
+      );
 
-      if (result.success) {
-        const formattedPosts =
-          result.data.map(item => ({
+    if (result.success) {
+      const formattedPosts: ScheduledPost[] =
+        result.data.map(
+          (item): ScheduledPost => ({
             id: item.id,
-
             content: item.text,
-
             image: item.image,
-
             url: item.url,
-
-            description:
-              item.description,
-
+            description: item.description,
             scheduled_at:
               item.scheduleTimeAndDate,
-
-            created_at:
-              item.createdAt,
-
-            updated_at:
-              item.updatedAt,
-
-            status:
-              item.isProcessed
-                ? "published"
-                : "scheduled",
-          }));
-
-        setPosts(formattedPosts);
-      }
-    } catch (error) {
-      console.error(
-        "Fetch posts error:",
-        error
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
-
-  const handleSave = async (
-    post: NewPost
-  ) => {
-    try {
-      if (editingPost) {
-        await api.put(
-          `/smp/${editingPost.id}`,
-          post
+            created_at: item.createdAt,
+            updated_at: item.updatedAt,
+            status: item.isProcessed
+              ? "published"
+              : "scheduled",
+          })
         );
-      } else {
-        await api.post(
-          "/smp",
-          post
-        );
-      }
 
-      setComposerOpen(false);
-
-      setEditingPost(null);
-
-      fetchPosts();
-    } catch (error) {
-      console.error(
-        "Save post error:",
-        error
-      );
+      setPosts(formattedPosts);
     }
-  };
+  } catch (error) {
+    console.error(
+      "Fetch posts error:",
+      error
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  (async () => {
+    await fetchPosts();
+  })();
+}, []);
+
+ 
 
   const handleDelete = async (
     id: string
@@ -381,15 +328,16 @@ export default function Dashboard() {
       </main>
 
       {composerOpen && (
-        <PostComposer
-          post={editingPost}
-          onSave={handleSave}
-          onClose={() => {
-            setComposerOpen(false);
+<PostComposer
+  editPost={
+    editingPost || undefined
+  }
+  onClose={() => {
+    setComposerOpen(false);
 
-            setEditingPost(null);
-          }}
-        />
+    setEditingPost(null);
+  }}
+/>
       )}
     </div>
   );

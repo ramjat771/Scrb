@@ -1,7 +1,8 @@
 export type PostStatus =
   | "draft"
   | "scheduled"
-  | "published";
+  | "published"
+  | "failed";
 
 export interface ScheduledPost {
   id: string;

@@ -12,12 +12,11 @@ import {
 } from "lucide-react";
 
 import { api } from "../api/api";
+import { PostStatus } from "../lib/supabase";
 
 const MAX_CHARS = 280;
 
-type PostStatus =
-  | "draft"
-  | "scheduled";
+
 
 interface EditPost {
   id: string;
