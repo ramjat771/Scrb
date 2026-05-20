@@ -78,6 +78,7 @@ const fetchPosts = async () => {
             id: item.id,
             content: item.text,
             image: item.image,
+            media_url: item.image, 
             url: item.url,
             description: item.description,
             scheduled_at:

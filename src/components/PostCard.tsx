@@ -61,12 +61,25 @@ export default function PostCard({ post, onEdit, onDelete }: PostCardProps) {
 
       <p className="text-gray-800 text-sm leading-relaxed line-clamp-3 mb-3">{post.content}</p>
 
-      {post.media_url && (
-        <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-          <Image size={12} />
-          <span className="truncate max-w-[200px]">{post.media_url}</span>
-        </div>
-      )}
+{post.media_url && (
+  <div className="mb-2 overflow-hidden rounded-lg border border-gray-100">
+    <img
+      src={post.media_url}
+      alt="Post"
+      className="h-32 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+      onError={(e) => {
+        e.currentTarget.parentElement?.remove();
+      }}
+    />
+
+    <div className="flex items-center gap-1 border-t border-gray-100 bg-gray-50 px-2 py-1.5 text-[10px] text-gray-400">
+      <Image size={10} />
+      <span className="truncate">
+        {post.media_url}
+      </span>
+    </div>
+  </div>
+)}
 
       <div className="flex items-center justify-between pt-3 border-t border-gray-50">
         <div className="flex items-center gap-3 text-xs text-gray-400">

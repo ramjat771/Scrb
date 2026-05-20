@@ -1,7 +1,6 @@
 // const BASE_URL =
 //   "http://localhost:3024/api";
   const BASE_URL="https://cyberrajasthan.online/scrb/api/";
-
 type Method =
   | "GET"
   | "POST"
