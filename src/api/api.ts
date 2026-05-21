@@ -1,6 +1,11 @@
+// api/api.ts
+
+const BASE_URL =
+"http://localhost:3024/api";
+
 // const BASE_URL =
-//   "http://localhost:3024/api";
-  const BASE_URL="https://cyberrajasthan.online/scrb/api/";
+//   "https://cyberrajasthan.online/scrb/api/";
+
 type Method =
   | "GET"
   | "POST"
@@ -25,30 +30,50 @@ async function request<T>(
   } = options;
 
   try {
-    const response = await fetch(
-      `${BASE_URL}${endpoint}`,
-      {
-        method,
+    const isFormData =
+      body instanceof FormData;
 
-        headers: {
-          "Content-Type":
-            "application/json",
-          ...headers,
-        },
+    const response =
+      await fetch(
+        `${BASE_URL}${endpoint}`,
+        {
+          method,
 
-        body: body
-          ? JSON.stringify(body)
-          : undefined,
-      }
-    );
+          headers: isFormData
+            ? headers
+            : {
+                "Content-Type":
+                  "application/json",
+
+                ...headers,
+              },
+
+          body: body
+            ? isFormData
+              ? body as FormData
+              : JSON.stringify(
+                  body
+                )
+            : undefined,
+        }
+      );
+
+    const data =
+      await response.json();
 
     if (!response.ok) {
+      console.error(
+        "Backend Error:",
+        data
+      );
+
       throw new Error(
-        `API Error: ${response.status}`
+        data.message ||
+          `API Error: ${response.status}`
       );
     }
 
-    return await response.json();
+    return data;
   } catch (error) {
     console.error(
       "API Request Failed:",
@@ -60,8 +85,9 @@ async function request<T>(
 }
 
 export const api = {
-  get: <T>(endpoint: string) =>
-    request<T>(endpoint),
+  get: <T>(
+    endpoint: string
+  ) => request<T>(endpoint),
 
   post: <T>(
     endpoint: string,
@@ -90,7 +116,9 @@ export const api = {
       body,
     }),
 
-  delete: <T>(endpoint: string) =>
+  delete: <T>(
+    endpoint: string
+  ) =>
     request<T>(endpoint, {
       method: "DELETE",
     }),

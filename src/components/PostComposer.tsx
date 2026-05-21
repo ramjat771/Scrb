@@ -16,8 +16,6 @@ import { PostStatus } from "../lib/supabase";
 
 const MAX_CHARS = 280;
 
-
-
 interface EditPost {
   id: string;
   content: string;
@@ -70,10 +68,17 @@ export default function PostComposer({
         "scheduled"
     );
 
-  const [mediaUrl, setMediaUrl] =
-    useState(
-      editPost?.media_url ?? ""
+  const [image, setImage] =
+    useState<File | null>(
+      null
     );
+
+  const [
+    imagePreview,
+    setImagePreview,
+  ] = useState(
+    editPost?.media_url ?? ""
+  );
 
   const [
     hashtagInput,
@@ -173,29 +178,47 @@ export default function PostComposer({
               )}`
             : content;
 
-        const payload = {
-          id: crypto.randomUUID(),
+        const formData =
+          new FormData();
 
-          text: fullContent,
+        formData.append(
+          "id",
+          crypto.randomUUID()
+        );
 
-          image:
-            mediaUrl || "",
+        formData.append(
+          "text",
+          fullContent
+        );
 
-          url: "",
+        formData.append(
+          "url",
+          ""
+        );
 
-          description:
-            "Scheduled Post",
+        formData.append(
+          "description",
+          "Scheduled Post"
+        );
 
-          scheduleTimeAndDate:
-            new Date(
-              scheduledAt
-            ).toISOString(),
-        };
+        formData.append(
+          "scheduleTimeAndDate",
+          new Date(
+            scheduledAt
+          ).toISOString()
+        );
+
+        if (image) {
+          formData.append(
+            "image",
+            image
+          );
+        }
 
         const response =
           await api.post(
             "/smp",
-            payload
+            formData
           );
 
         console.log(
@@ -214,8 +237,7 @@ export default function PostComposer({
         console.error(err);
 
         setError(
-          
-            "Something went wrong"
+          "Something went wrong"
         );
       } finally {
         setSaving(false);
@@ -343,25 +365,44 @@ export default function PostComposer({
 
           <hr className="border-gray-100" />
 
-          {/* Media URL */}
+          {/* Upload Image */}
           <div>
             <label className="mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
               <Image size={13} />
-              Media URL
+              Upload Image
             </label>
 
             <input
-              type="url"
-              value={mediaUrl}
+              type="file"
+              accept="image/*"
               disabled={saving}
-              onChange={e =>
-                setMediaUrl(
-                  e.target.value
-                )
-              }
-              placeholder="https://..."
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-sky-500 disabled:opacity-60"
+              onChange={e => {
+                const file =
+                  e.target
+                    .files?.[0];
+
+                if (file) {
+                  setImage(file);
+
+                  setImagePreview(
+                    URL.createObjectURL(
+                      file
+                    )
+                  );
+                }
+              }}
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
+
+            {imagePreview && (
+              <img
+                src={
+                  imagePreview
+                }
+                alt="Preview"
+                className="mt-3 h-40 w-full rounded-xl object-cover"
+              />
+            )}
           </div>
 
           {/* Hashtag */}
