@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import imageCompression from "browser-image-compression";
 import {
   X,
   Image,
@@ -376,21 +376,61 @@ export default function PostComposer({
               type="file"
               accept="image/*"
               disabled={saving}
-              onChange={e => {
-                const file =
-                  e.target
-                    .files?.[0];
+ onChange={async e => {
+  const file =
+    e.target.files?.[0];
 
-                if (file) {
-                  setImage(file);
+  if (!file) return;
 
-                  setImagePreview(
-                    URL.createObjectURL(
-                      file
-                    )
-                  );
-                }
-              }}
+  try {
+
+    // compress options
+    const options = {
+      maxSizeMB: 1,
+      maxWidthOrHeight: 1920,
+      useWebWorker: true,
+    };
+
+    // compress image
+    const compressedFile =
+      await imageCompression(
+        file,
+        options
+      );
+
+    // extension
+    const extension =
+      compressedFile.name
+        .split(".")
+        .pop() || "jpg";
+
+    // rename
+    const renamedFile =
+      new File(
+        [compressedFile],
+        `a.${extension}`,
+        {
+          type:
+            compressedFile.type,
+        }
+      );
+
+    setImage(renamedFile);
+
+    setImagePreview(
+      URL.createObjectURL(
+        renamedFile
+      )
+    );
+
+  } catch (err) {
+    console.error(
+      "Compression Error:",
+      err
+    );
+  }
+}}
+              
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
             />
 
